@@ -17,6 +17,7 @@ CONFIG = {
   "AUTH_COOKIE": "auth",
   "REFRESH_COOKIE": "rt",
   "VAL_API_URL": "https://t11hbao50k.execute-api.ap-southeast-2.amazonaws.com/prod/"
+  #"VAL_API_URL": "http://localhost:5001/"
 }
 
 class ExpiredSignatureError(Exception):
@@ -62,7 +63,6 @@ def validate_jwt(token, key_set, aud):
     "keys": key_set,
     "aud": aud
   })
-  print(r.content)
   if r.status_code != 200:
     raise ExpiredSignatureError("Signature not validated")
   return r.content

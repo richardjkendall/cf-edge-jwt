@@ -1,12 +1,14 @@
 import urllib, json, requests
 import logging
-import jwt
-from jwt.algorithms import RSAAlgorithm
-from jwt.exceptions import ExpiredSignatureError
 
 logger = logging.getLogger(__name__)
 
 WKC_URL = "https://{host}/auth/realms/{realm}/.well-known/openid-configuration"
+
+class ExpiredSignatureError(Exception):
+    """Class for BadRequestException"""
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
 
 def _split_cookies(cookie_str):
   cookies = {}
@@ -57,7 +59,7 @@ def set_cookies(response, cookies):
       expires = "; Expires=0"
     cookies_list += [{
       "key": "Set-Cookie",
-      "value": "{k}={v}; HttpOnly; Secure{e}".format(k=key, v=value, e=expires)
+      "value": "{k}={v}; Secure{e}".format(k=key, v=value, e=expires)
     }]
   headers["set-cookie"] = cookies_list
   response["headers"] = headers
@@ -93,23 +95,13 @@ def post_to_url(url, **kwargs):
   r = requests.post(url, data=kwargs)
   return r.content
 
-def validate_jwt(token, key_set, aud):
-  # first we have to get the headers
-  headers = jwt.get_unverified_header(token)
-  public_key = ""
-  # then find the key
-  for key in key_set:
-    if key["kid"] == headers["kid"]:
-      public_key = RSAAlgorithm.from_jwk(json.dumps(key))
-  # then validate the token against the key
-  if public_key:
-    decoded = jwt.decode(
-      token,
-      public_key,
-      algorithms=[headers["alg"]],
-      audience=aud
-    )
-    return decoded
-  else:
-    # could not find the key, probably an issue with keycloak
-    pass
+def validate_jwt(api, token, key_set, aud):
+  # post to API to validate
+  r = requests.post(api, json={
+    "token": token,
+    "keys": key_set,
+    "aud": aud
+  })
+  if r.status_code != 200:
+    raise ExpiredSignatureError("Signature not validated")
+  return r.content

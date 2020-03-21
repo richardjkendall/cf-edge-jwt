@@ -2,9 +2,7 @@ import json
 import logging
 from urllib.parse import parse_qs
 
-from jwt.exceptions import ExpiredSignatureError
-
-from utils import build_url, get_wkc, get_certs, post_to_url, validate_jwt, redirect, return_bad_request, set_cookies, get_cookies
+from utils import build_url, get_wkc, get_certs, post_to_url, validate_jwt, redirect, return_bad_request, set_cookies, get_cookies, ExpiredSignatureError
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)s] (%(threadName)-10s) %(message)s')
 logger = logging.getLogger(__name__)
@@ -16,7 +14,8 @@ CONFIG = {
   "CLIENT_SECRET": "f4f13b21-ac6d-4980-8738-ac8964e48738",
   "AUTH_COOKIE": "auth",
   "REFRESH_COOKIE": "rt",
-  "REDIRECT_URI": "https://example-ms.np.tstaucloud.com/_login"
+  "REDIRECT_URI": "https://example-ms.np.tstaucloud.com/_login",
+  "VAL_API_URL": "https://t11hbao50k.execute-api.ap-southeast-2.amazonaws.com/prod/"
 }
 
 # make sure we have the config data
@@ -103,6 +102,7 @@ def check_session(request):
     # try to validate the token
     try:
       decoded = validate_jwt(
+        api=CON["VAL_API_URL"],
         token=cookies[CONFIG["AUTH_COOKIE"]],
         key_set=keys,
         aud=CONFIG["CLIENT_ID"]
