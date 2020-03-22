@@ -9,16 +9,7 @@ app = Flask(__name__)
 
 WKC_URL = "https://{host}/auth/realms/{realm}/.well-known/openid-configuration"
 
-CONFIG = {
-  "HOST": "keycloak.np.tstaucloud.com",
-  "REALM": "Dev",
-  "CLIENT_ID": "localtest",
-  "CLIENT_SECRET": "f4f13b21-ac6d-4980-8738-ac8964e48738",
-  "AUTH_COOKIE": "auth",
-  "REFRESH_COOKIE": "rt",
-  "VAL_API_URL": "https://t11hbao50k.execute-api.ap-southeast-2.amazonaws.com/prod/"
-  #"VAL_API_URL": "http://localhost:5001/"
-}
+CONFIG = {}
 
 class ExpiredSignatureError(Exception):
     """Class for BadRequestException"""
@@ -66,6 +57,10 @@ def validate_jwt(token, key_set, aud):
   if r.status_code != 200:
     raise ExpiredSignatureError("Signature not validated")
   return r.content
+
+# load the settings json
+with open("settings.json") as f:
+  CONFIG = json.load(f)
 
 # make sure we have the config data
 wkc_data = get_wkc(
