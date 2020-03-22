@@ -98,7 +98,7 @@ def check_session(request):
     # try to validate the token
     try:
       decoded = validate_jwt(
-        api=CON["VAL_API_URL"],
+        api=CONFIG["VAL_API_URL"],
         token=cookies[CONFIG["AUTH_COOKIE"]],
         key_set=keys,
         aud=CONFIG["CLIENT_ID"]
