@@ -72,7 +72,7 @@ def handle_logout(request):
   if CONFIG["REFRESH_COOKIE"] in cookies:
     logger.info("Posting to logout URL")
     resp = post_to_url(
-      url=wkc_data["end_session_endpoint"][:-1],
+      url=wkc_data["end_session_endpoint"],
       client_id=CONFIG["CLIENT_ID"],
       client_secret=CONFIG["CLIENT_SECRET"],
       refresh_token=cookies[CONFIG["REFRESH_COOKIE"]]
