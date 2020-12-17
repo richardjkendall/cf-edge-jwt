@@ -85,7 +85,7 @@ def handle_logout(request):
   r = set_cookies(
     response=r,
     cookies=cookies,
-    max_age=CONFIG["MAX_AGE"]
+    max_age=CONFIG.get("MAX_AGE", "10")
   )
   logger.info("Returning response to client")
   return r
