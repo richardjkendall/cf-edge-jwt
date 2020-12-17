@@ -58,7 +58,8 @@ def handle_login(request):
     cookies[CONFIG["REFRESH_COOKIE"]] = refresh_token
     r = set_cookies(
       response=r,
-      cookies=cookies
+      cookies=cookies,
+      max_age=CONFIG.get("MAX_AGE", "10")
     )
     logger.info("Returning response to client")
     return r
@@ -84,8 +85,7 @@ def handle_logout(request):
   cookies[CONFIG["REFRESH_COOKIE"]] = ""
   r = set_cookies(
     response=r,
-    cookies=cookies,
-    max_age=CONFIG.get("MAX_AGE", "10")
+    cookies=cookies
   )
   logger.info("Returning response to client")
   return r
@@ -131,7 +131,8 @@ def check_session(request):
           cookies[CONFIG["AUTH_COOKIE"]] = access_token
           r = set_cookies(
             response=r,
-            cookies=cookies
+            cookies=cookies,
+            max_age=CONFIG.get("MAX_AGE", "10")
           )
           return r
       else:
