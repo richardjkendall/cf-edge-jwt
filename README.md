@@ -17,6 +17,7 @@ The code looks for a file called `settings.json` to load its config (Lambda@Edge
   "AUTH_COOKIE": "",
   "REFRESH_COOKIE": "",
   "VAL_API_URL": ""
+  "MAX_AGE": ""
 }
 ```
 
@@ -31,6 +32,7 @@ Where the values are
 |AUTH_COOKIE|Name of the cookie used to store the JWT access token|
 |REFRESH_COOKIE|Name of the cookie used to store the JWT refresh token|
 |VAL_API_URL|URL for the JWT validate API|
+|MAX_AGE|The max age the cookies will live, in seconds|
 
 ## Validate API
 
