@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 from urllib.parse import parse_qs
@@ -34,6 +35,18 @@ logger.info("Global: got auth URL: {url}".format(url=aurl))
 def handle_login(request):
   logger.info("Starting handle_login")
   args = parse_qs(request["querystring"])
+  redirect_to = "/"
+  # check if state is present
+  if "state" in args:
+    # need to decode state
+    state = args["state"][0]
+    logger.info("Got state of: {state}".format(state=state))
+    state = base64.b64decode(state).decode("utf-8")
+    logger.info("Decoded state: {state}".format(state=state))
+    state = json.loads(state)
+    if "source_url" in state:
+      redirect_to = state["source_url"]
+      logger.info("Got source url from state of {url}".format(url=redirect_to))
   try:
     auth_code = args["code"]
     logger.info("Got auth code from query string: {code}".format(code=auth_code))
@@ -52,13 +65,14 @@ def handle_login(request):
     access_token = resp["access_token"]
     refresh_token = resp["refresh_token"]
     # prepare response
-    r = redirect("/")
+    r = redirect(redirect_to)
     cookies = {}
     cookies[CONFIG["AUTH_COOKIE"]] = access_token
     cookies[CONFIG["REFRESH_COOKIE"]] = refresh_token
     r = set_cookies(
       response=r,
-      cookies=cookies
+      cookies=cookies,
+      max_age=CONFIG.get("MAX_AGE", "10")
     )
     logger.info("Returning response to client")
     return r
@@ -84,8 +98,7 @@ def handle_logout(request):
   cookies[CONFIG["REFRESH_COOKIE"]] = ""
   r = set_cookies(
     response=r,
-    cookies=cookies,
-    max_age=CONFIG.get("MAX_AGE", "10")
+    cookies=cookies
   )
   logger.info("Returning response to client")
   return r
@@ -93,6 +106,17 @@ def handle_logout(request):
 def check_session(request):
   logger.info("Starting check_session")
   cookies = get_cookies(request["headers"])
+  # update aurl with state data
+  source_url = request["uri"]
+  if request["querystring"]:
+    source_url = source_url + "?{qs}".format(qs=request["querystring"])
+  logger.info("Determined source_url is {s}".format(s=source_url))
+  state = {
+    "source_url": source_url
+  }
+  state = base64.b64encode(json.dumps(state).encode("utf-8")).decode("utf-8")
+  logger.info("Encoded state: {state}".format(state=state))
+  aurl_with_state = "{aurl}&state={state}".format(aurl=aurl, state=state)
   # check for auth token
   if CONFIG["AUTH_COOKIE"] in cookies:
     logger.info("Got access token")
@@ -131,16 +155,17 @@ def check_session(request):
           cookies[CONFIG["AUTH_COOKIE"]] = access_token
           r = set_cookies(
             response=r,
-            cookies=cookies
+            cookies=cookies,
+            max_age=CONFIG.get("MAX_AGE", "10")
           )
           return r
       else:
         # return a 302 redirect as we don't have a refresh token
         logger.info("No refresh token present, so need to log in again")
-        return redirect(aurl)
+        return redirect(aurl_with_state)
   else:
     logger.info("No access token present, so need to log in")
-    return redirect(aurl)
+    return redirect(aurl_with_state)
 
 def lambda_handler(event, context):
   # get the request
