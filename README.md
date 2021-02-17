@@ -4,6 +4,8 @@ This is a small lambda function which can be deployed on a CloudFront distributi
 
 It works together with Keycloak and another API I developed.  The other API performs JWT validation and it had to be separated out because it uses the Python cryptography module which is too big to package in a Lambda@Edge function (max size 1MB).
 
+It preserves the requested resource during a login event e.g. if the user attempts to access /deep/link/in/your/site then the final redirect after login will be back to this location.
+
 ## Requirements
 
 The code looks for a file called `settings.json` to load its config (Lambda@Edge does not support environment variables).  The file should have the following structure
@@ -16,7 +18,8 @@ The code looks for a file called `settings.json` to load its config (Lambda@Edge
   "CLIENT_SECRET": "",
   "AUTH_COOKIE": "",
   "REFRESH_COOKIE": "",
-  "VAL_API_URL": ""
+  "VAL_API_URL": "",
+  "REDIRECT_URI": ""
 }
 ```
 
@@ -31,6 +34,7 @@ Where the values are
 |AUTH_COOKIE|Name of the cookie used to store the JWT access token|
 |REFRESH_COOKIE|Name of the cookie used to store the JWT refresh token|
 |VAL_API_URL|URL for the JWT validate API|
+|REDIRECT_URI|Where should the IdP redirect back to, should be the CF distribution DNS name/alias with /_login on the end e.g. https://blah.com/_login
 
 ## Validate API
 
