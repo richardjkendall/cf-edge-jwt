@@ -48,7 +48,7 @@ def redirect(url):
     }
   )
 
-def set_cookies(response, cookies):
+def set_cookies(response, cookies, max_age = None):
   headers = {}
   if "headers" in response:
     headers = response["headers"]
@@ -57,6 +57,9 @@ def set_cookies(response, cookies):
     expires = ""
     if value == "":
       expires = "; Expires=0"
+    else:
+      if max_age != None:
+        expires = "; Max-Age={a}".format(a=max_age)
     cookies_list += [{
       "key": "Set-Cookie",
       "value": "{k}={v}; Secure{e}".format(k=key, v=value, e=expires)
