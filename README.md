@@ -18,7 +18,8 @@ The code looks for a file called `settings.json` to load its config (Lambda@Edge
   "CLIENT_SECRET": "",
   "AUTH_COOKIE": "",
   "REFRESH_COOKIE": "",
-  "VAL_API_URL": "",
+  "VAL_API_URL": ""
+  "MAX_AGE": ""
   "REDIRECT_URI": ""
 }
 ```
@@ -34,6 +35,7 @@ Where the values are
 |AUTH_COOKIE|Name of the cookie used to store the JWT access token|
 |REFRESH_COOKIE|Name of the cookie used to store the JWT refresh token|
 |VAL_API_URL|URL for the JWT validate API|
+|MAX_AGE|The max age the cookies will live, in seconds|
 |REDIRECT_URI|Where should the IdP redirect back to, should be the CF distribution DNS name/alias with /_login on the end e.g. https://blah.com/_login
 
 ## Validate API
