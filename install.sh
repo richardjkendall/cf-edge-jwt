@@ -11,3 +11,7 @@ echo "  \"REDIRECT_URI\": \"$REDIRECT_URI\"," >> "settings.json"
 echo "  \"VAL_API_URL\": \"$VAL_API_URL\"," >> "settings.json"
 echo "  \"MAX_AGE\": \"$MAX_AGE\"" >> "settings.json"
 echo "}" >> "settings.json"
+
+# remove test files
+rm test.py
+rm cf.py

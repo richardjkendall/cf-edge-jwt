@@ -48,6 +48,35 @@ def redirect(url):
     }
   )
 
+def forbidden(message):
+  body = f"""<!doctype html>
+  <html>
+    <head>
+      <title>Forbidden</title>
+    </head>
+    <body>
+      <h1>Access is not allowed</h1>
+      <p>{message}</p>
+    </body>
+  </html>
+  """
+  headers = {
+    "content-type": [
+      {
+        "key": "Content-Type",
+        "value": "text/html"
+      }
+    ]
+  }
+  response = make_response(
+    code=403, 
+    description="Forbidden", 
+    headers=headers
+  )
+  response["body"] = body
+  response["bodyEncoding"] = "text"
+  return response
+
 def set_cookies(response, cookies, max_age = None):
   headers = {}
   if "headers" in response:
@@ -62,7 +91,7 @@ def set_cookies(response, cookies, max_age = None):
         expires = "; Max-Age={a}".format(a=max_age)
     cookies_list += [{
       "key": "Set-Cookie",
-      "value": "{k}={v}; Secure{e}".format(k=key, v=value, e=expires)
+      "value": "{k}={v}; Secure; HttpOnly{e}".format(k=key, v=value, e=expires)
     }]
   headers["set-cookie"] = cookies_list
   response["headers"] = headers
