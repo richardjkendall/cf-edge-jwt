@@ -5,3 +5,6 @@ __pycache__/**
 function.zip
 package/
 package/**
+
+.test
+settings.json

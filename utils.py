@@ -1,4 +1,4 @@
-import urllib, json, requests
+import urllib, json, requests, random, sys
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,6 +9,16 @@ class ExpiredSignatureError(Exception):
     """Class for BadRequestException"""
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
+
+def get_rand_string(number_of_characters):
+    chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    rnd = random.SystemRandom()
+    out = ""
+    for d in range(number_of_characters):
+        i = rnd.randint(0, sys.maxsize)
+        i = i % len(chars)
+        out = out + chars[i:i+1]
+    return out
 
 def _split_cookies(cookie_str):
   cookies = {}
@@ -48,6 +58,35 @@ def redirect(url):
     }
   )
 
+def forbidden(message):
+  body = f"""<!doctype html>
+  <html>
+    <head>
+      <title>Forbidden</title>
+    </head>
+    <body>
+      <h1>Access is not allowed</h1>
+      <p>{message}</p>
+    </body>
+  </html>
+  """
+  headers = {
+    "content-type": [
+      {
+        "key": "Content-Type",
+        "value": "text/html"
+      }
+    ]
+  }
+  response = make_response(
+    code=403, 
+    description="Forbidden", 
+    headers=headers
+  )
+  response["body"] = body
+  response["bodyEncoding"] = "text"
+  return response
+
 def set_cookies(response, cookies, max_age = None):
   headers = {}
   if "headers" in response:
@@ -62,7 +101,7 @@ def set_cookies(response, cookies, max_age = None):
         expires = "; Max-Age={a}".format(a=max_age)
     cookies_list += [{
       "key": "Set-Cookie",
-      "value": "{k}={v}; Secure{e}".format(k=key, v=value, e=expires)
+      "value": "{k}={v}; Secure; HttpOnly{e}".format(k=key, v=value, e=expires)
     }]
   headers["set-cookie"] = cookies_list
   response["headers"] = headers
