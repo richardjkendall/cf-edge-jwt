@@ -1,9 +1,10 @@
 import base64
 import json
 import logging
+from hashlib import sha256
 from urllib.parse import parse_qs
 
-from utils import build_url, get_wkc, get_certs, post_to_url, validate_jwt, redirect, return_bad_request, set_cookies, get_cookies, ExpiredSignatureError, forbidden
+from utils import build_url, get_wkc, get_certs, post_to_url, validate_jwt, redirect, return_bad_request, set_cookies, get_cookies, ExpiredSignatureError, forbidden, get_rand_string
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)s] (%(threadName)-10s) %(message)s')
 logger = logging.getLogger(__name__)
@@ -45,6 +46,11 @@ def handle_login(request):
     logger.info("Decoded state: {state}".format(state=state))
     state = json.loads(state)
     if "source_url" in state:
+      # check hash
+      source_url_secret = CONFIG["STATE_SECRET"] + state["source_url"]
+      source_url_secret_hash = sha256(source_url_secret.encode("utf-8")).hexdigest()
+      if source_url_secret_hash != state["hash"]:
+        return return_bad_request("Error validating state")
       redirect_to = state["source_url"]
       logger.info("Got source url from state of {url}".format(url=redirect_to))
   try:
@@ -80,10 +86,10 @@ def handle_login(request):
             logger.info(f"user has expected group of {allowed_group}")
           else:
             logger.info(f"user is missing expected group of {allowed_group}")
-            return forbidden(message="You are not in a group with access to this application")
+            return forbidden(message=CONFIG["ACCESS_DENIED_MESSAGE"])
         else:
           logger.info("no groups claim in token")
-          return forbidden(message="You are not in a group with access to this application")
+          return forbidden(message=CONFIG["ACCESS_DENIED_MESSAGE"])
     # prepare response
     r = redirect(redirect_to)
     cookies = {}
@@ -131,8 +137,11 @@ def check_session(request):
   if request["querystring"]:
     source_url = source_url + "?{qs}".format(qs=request["querystring"])
   logger.info("Determined source_url is {s}".format(s=source_url))
+  source_url_secret = CONFIG["STATE_SECRET"] + source_url
   state = {
-    "source_url": source_url
+    "source_url": source_url,
+    "hash": sha256(source_url_secret.encode("utf-8")).hexdigest(),
+    "nonce": get_rand_string(10)
   }
   state = base64.b64encode(json.dumps(state).encode("utf-8")).decode("utf-8")
   logger.info("Encoded state: {state}".format(state=state))

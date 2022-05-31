@@ -1,4 +1,4 @@
-import urllib, json, requests
+import urllib, json, requests, random, sys
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,6 +9,16 @@ class ExpiredSignatureError(Exception):
     """Class for BadRequestException"""
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
+
+def get_rand_string(number_of_characters):
+    chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    rnd = random.SystemRandom()
+    out = ""
+    for d in range(number_of_characters):
+        i = rnd.randint(0, sys.maxsize)
+        i = i % len(chars)
+        out = out + chars[i:i+1]
+    return out
 
 def _split_cookies(cookie_str):
   cookies = {}
