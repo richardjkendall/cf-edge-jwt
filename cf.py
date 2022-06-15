@@ -180,7 +180,7 @@ def check_session(request):
         else:
           access_token = resp["access_token"]
           logger.info("Got new access token, returning to client")
-          r = redirect("/")
+          r = redirect(source_url)
           cookies[CONFIG["AUTH_COOKIE"]] = access_token
           r = set_cookies(
             response=r,
